@@ -1,0 +1,16 @@
+{
+    "require": {
+        "symfony/console": "^4.3",
+        "symfony/polyfill-mbstring": "^1.11",
+    	"react/http": "^0.8",
+        "psr/log": "^1.0",
+        "dflydev/apache-mime-types": "^1.0",
+        "react/dns": "^0.4.9",
+        "react/socket": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Catalog\\": "src/"
+        }
+    }
+}
