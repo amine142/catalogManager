@@ -1,3 +1,3 @@
 # catalogManager
 
-<p>React PHP based micro service phar application : product catalog manager  </p>
+<p>React PHP micro service phar application : product catalog manager and vueJS layout  </p>
