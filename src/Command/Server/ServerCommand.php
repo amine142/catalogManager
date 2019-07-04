@@ -53,7 +53,6 @@ class ServerCommand extends Command
             
             if(isset($request->getQueryParams()['close']) && $request->getQueryParams()['close'] === "1"){
                 // shutdown http server;
-                var_dump($request->getQueryParams()['close']);
                 $socket->close();
             };
             $staticWebServer = new \Catalog\Services\StaticWebServer($path);
