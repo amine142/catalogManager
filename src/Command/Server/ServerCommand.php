@@ -16,8 +16,6 @@ use React\Http\Response;
 
 class ServerCommand extends Command 
 {
-    protected $serverSockets ; 
-    
 
     protected function configure() 
     {
@@ -49,36 +47,42 @@ class ServerCommand extends Command
         $port = ($input->getOption('port'))?$input->getOption('port'):8080;
 
         $loop = Factory::create();
-        $path = APPLICATION_PATH.'/src/Resources/public'; 
-        $server = new HttpServer(function (ServerRequestInterface $request) use ($path) {
+        $path = APPLICATION_PATH.'/src/Resources/public';
+        $socket = new \React\Socket\Server("$host:$port", $loop);
+        $server = new HttpServer(function (ServerRequestInterface $request) use ($path, $socket) {
+            
+            if(isset($request->getQueryParams()['close']) && $request->getQueryParams()['close'] === "1"){
+                // shutdown http server;
+                var_dump($request->getQueryParams()['close']);
+                $socket->close();
+            };
             $staticWebServer = new \Catalog\Services\StaticWebServer($path);
             $response = $staticWebServer->handleRequest($request);
             return $response;
         });
-
-        $socket = new \React\Socket\Server("$host:$port", $loop);
+        
         $server->listen($socket);
-        $this->serverSockets[] = $socket;
         echo 'Listening on ' . str_replace('tcp:', 'http:', $socket->getAddress()) . "\n";
         $loop->run();
    }
    
    private function stop($input)
    {
-       var_dump($this->serverSockets);die();
         $host = ($input->getOption('host')) ? $input->getOption('host') : '0.0.0.0';
         $port = ($input->getOption('port')) ? $input->getOption('port') : 8080;
-        $clientLoop = \React\EventLoop\Factory::create();
-
-        $connector = new \React\Socket\Connector($clientLoop);
-        $promise = $connector->connect("dns://$host:$port");
-        $promise->then(function (Stream $stream) {
-            $stream->close();
-            return true;
-        }, function (\ErrorException $e) {
-            return false;
+        $resource = stream_socket_client('tcp://' . $host . ':'.$port);
+        if (!$resource) {
+            exit(1);
+        }
+        $loop = Factory::create();
+        $stream = new \React\Stream\DuplexResourceStream($resource, $loop);
+    
+        $stream->on('end', function () {
+            echo '[CLOSED]' . PHP_EOL;
         });
-        $clientLoop->run();
+        $stream->write("GET /?close=1 HTTP/1.0\r\nHost: $host\r\n\r\n");
+
+        $loop->run();
     }
 
 }
