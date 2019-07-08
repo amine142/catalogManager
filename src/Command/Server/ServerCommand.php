@@ -50,9 +50,10 @@ class ServerCommand extends Command
         $path = APPLICATION_PATH.'/src/Resources/public';
         $socket = new \React\Socket\Server("$host:$port", $loop);
         $server = new HttpServer(function (ServerRequestInterface $request) use ($path, $socket) {
-            
-            if(isset($request->getQueryParams()['close']) && $request->getQueryParams()['close'] === "1"){
+            if( null !== $request->getHeaderLine('Server-Command') && $request->getHeaderLine('Server-Command') === "stop"){
                 // shutdown http server;
+                echo 'Server shutdown '. "\n";
+                sleep(3);
                 $socket->close();
             };
             $staticWebServer = new \Catalog\Services\StaticWebServer($path);
@@ -79,7 +80,7 @@ class ServerCommand extends Command
         $stream->on('end', function () {
             echo '[CLOSED]' . PHP_EOL;
         });
-        $stream->write("GET /?close=1 HTTP/1.0\r\nHost: $host\r\n\r\n");
+        $stream->write("HEAD / HTTP/1.0\r\nHost: $host\r\nServer-Command: stop\r\n\r\n");
 
         $loop->run();
     }
