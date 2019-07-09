@@ -21,7 +21,7 @@
  * @author amine
  */
 $srcRoot = realpath(__DIR__);
-$buildRoot = realpath(__DIR__);
+$buildRoot = realpath(__DIR__)."/../";
 
 
 $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($srcRoot, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::LEAVES_ONLY);
