@@ -42,7 +42,16 @@ final class AppKernel extends Kernel
     {
         return [];
     }
-
+    
+    public function getCacheDir()
+    {
+        return '/dev/shm/cache/'.$this->environment.'/';
+    }
+    
+    public function getLogDir()
+    {
+        return '/dev/shm/log/';
+    }
     /**
      * Load all services
      */
