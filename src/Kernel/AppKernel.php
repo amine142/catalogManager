@@ -45,12 +45,20 @@ final class AppKernel extends Kernel
     
     public function getCacheDir()
     {
-        return '/dev/shm/cache/'.$this->environment.'/';
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+           return "d:\\tmp\\cache\\".$this->environment."\\";
+        } else {
+           return '/dev/shm/cache/'.$this->environment.'/';
+        }
     }
     
     public function getLogDir()
     {
-        return '/dev/shm/log/';
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+           return "d:\\tmp\\log\\";
+        } else {
+           return '/dev/shm/log/';
+        }
     }
     /**
      * Load all services
