@@ -11,8 +11,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use React\EventLoop\Factory;
 use React\Http\Server as HttpServer;
 use React\Socket\Server as Socket;
-use React\Stream\CompositeStream as Stream;
-use React\Http\Response;
+use Catalog\Services\StaticWebServer as HttpStaticServer;
 
 class ServerCommand extends Command 
 {
@@ -25,6 +24,7 @@ class ServerCommand extends Command
                 ->addArgument('commands', InputArgument::REQUIRED , 'commands to lauch') 
                 ->addOption('host', null, InputOption::VALUE_OPTIONAL, 'host')
                 ->addOption('port', null, InputOption::VALUE_OPTIONAL, 'port')
+                ->addOption('options', null, InputOption::VALUE_OPTIONAL, 'json encoded options')
         ;
     }
 
@@ -43,20 +43,25 @@ class ServerCommand extends Command
     
    private function start($input)
    {
+        global $container;
         $host = ($input->getOption('host'))?$input->getOption('host'):'0.0.0.0';
         $port = ($input->getOption('port'))?$input->getOption('port'):8080;
-
+        $application = $this->getApplication();
+        $shutdown_password = $container->getParameter('webserver_shutdown_password');
         $loop = Factory::create();
         $path = APPLICATION_PATH.'/src/Resources/public';
-        $socket = new \React\Socket\Server("$host:$port", $loop);
-        $server = new HttpServer(function (ServerRequestInterface $request) use ($path, $socket) {
-            if( null !== $request->getHeaderLine('Server-Command') && $request->getHeaderLine('Server-Command') === "stop"){
+        $socket = new Socket("$host:$port", $loop);
+        $server = new HttpServer(function (ServerRequestInterface $request) use ($path, $socket, $shutdown_password) {
+            if( null !== $request->getHeaderLine('Server-Command')){
+                $hash = json_decode(base64_decode($request->getHeaderLine('Server-Command')), true);
+                if ($shutdown_password === $hash['password'] && 'stop' === $hash['cmd']){
                 // shutdown http server;
-                echo 'Server shutdown '. "\n";
-                sleep(3);
-                $socket->close();
+                    echo 'Server shutdown '. "\n";
+                    sleep(3);
+                    $socket->close();
+                }
             };
-            $staticWebServer = new \Catalog\Services\StaticWebServer($path);
+            $staticWebServer = new HttpStaticServer($path);
             $response = $staticWebServer->handleRequest($request);
             return $response;
         });
@@ -70,18 +75,19 @@ class ServerCommand extends Command
    {
         $host = ($input->getOption('host')) ? $input->getOption('host') : '0.0.0.0';
         $port = ($input->getOption('port')) ? $input->getOption('port') : 8080;
+        $options = ($input->getOption('options')) ? $input->getOption('options') : '';
+        
         $resource = stream_socket_client('tcp://' . $host . ':'.$port);
         if (!$resource) {
             exit(1);
         }
         $loop = Factory::create();
         $stream = new \React\Stream\DuplexResourceStream($resource, $loop);
-    
         $stream->on('end', function () {
             echo '[CLOSED]' . PHP_EOL;
         });
-        $stream->write("HEAD / HTTP/1.0\r\nHost: $host\r\nServer-Command: stop\r\n\r\n");
-
+        $cmd = base64_encode($options);
+        $stream->write("HEAD / HTTP/1.0\r\nHost: $host\r\nServer-Command: $cmd\r\n\r\n");
         $loop->run();
     }
 

@@ -1,14 +1,36 @@
 ## YAML Template.
 ---
+parameters:
+    mongodb_host: 127.0.0.1
+    mongodb_port: 27017
+    mongodb_db: test
+    webserver_shutdown_password : "1234"
 # config/services.yml
 services:
     _defaults:
         autowire: true
-
+        autoconfigure: true
     Catalog\:
         resource: '../../../src'
-
     Symfony\Component\Console\Application:
-        # why public? so we can get it from container in bin file
-        # via "$container->get(Application::class)"
+        public: true
+    Doctrine\ODM\MongoDB\Tools\Console\Command\ClearCache\MetadataCommand:
+        public: true
+    Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\CreateCommand:
+        public: true
+    Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\UpdateCommand:
+        public: true
+    Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\DropCommand:
+        public: true
+    Doctrine\ODM\MongoDB\Tools\Console\Command\GenerateDocumentsCommand:
+        public: true
+    Doctrine\ODM\MongoDB\Tools\Console\Command\GenerateHydratorsCommand:
+        public: true
+    Doctrine\ODM\MongoDB\Tools\Console\Command\GeneratePersistentCollectionsCommand:
+        public: true
+    Doctrine\ODM\MongoDB\Tools\Console\Command\GenerateProxiesCommand:
+        public: true
+    Doctrine\ODM\MongoDB\Tools\Console\Command\GenerateRepositoriesCommand:
+        public: true
+    Doctrine\ODM\MongoDB\Tools\Console\Command\QueryCommand:
         public: true
