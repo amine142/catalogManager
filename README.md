@@ -1,3 +1,3 @@
 # catalogManager
 
-<p> micro service phar application, made by ReactPHP : product catalog manager and vueJS layout  </p>
+<p> Phar app Micro service made by ReactPHP : product catalog manager and vueJS layout  </p>
